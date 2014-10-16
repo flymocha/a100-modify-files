@@ -5,6 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+	<script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script class="jsbin" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script>
+	<meta charset=utf-8 />
 	<title>A100 Application - New Applicant Form</title>
 
 	<!-- Bootstrap -->
@@ -90,6 +94,9 @@
 							echo "<p><a href='../index.php'>Click here to go to gateway</a></p>";
 						}
 
+						if ($row['section_id']==3)
+						{
+
 							$fieldName = $row['field_name'];  //variable to hold DB name content/reduce need for " and '
 							if($fieldName=='password' || $fieldName=='cohort_name' || $fieldName=='email'){
 
@@ -108,129 +115,147 @@
 								}
 							}
 
-							if($row['is_active']==x){  //flag functionality not working right now due to ambiguous column headers
-								echo "is active flag:" . $row['is_active'];
-							}else
-							{
-								if($row['is_required']==1 && $row['post_text'] ==NULL && $row['pre_text']!= NULL){
-									echo "<h4>".$row['pre_text'] . "*</h4>";
-								}else{
-									echo "<h4>".$row['pre_text'] . "</h4>";}
+							
+							if($row['is_required']==1 && $row['post_text'] ==NULL && $row['pre_text']!= NULL){
+								echo "<h4>".$row['pre_text'] . "*</h4>";
+							}else{
+								echo "<h4>".$row['pre_text'] . "</h4>";
+							}
 
-									$insideText = "";  //variable to hold inside text content/reduce need for " and '
+							$insideText = "";  //variable to hold inside text content/reduce need for " and '
 									//$fieldName = $row['field_name'];  //variable to hold DB name content/reduce need for " and '
-									$fieldId = $row['field_id'];  //variable to hold DB name content/reduce need for " and '
+							$fieldId = $row['field_id'];  //variable to hold DB name content/reduce need for " and '
 
 									//echo $backloadRow[$fieldName] . " from stored " . $fieldName . "</br>";
-									if($backloadRow[$fieldName]!=NULL){
+							if($backloadRow[$fieldName]!=NULL){
 										//echo $backloadRow['$fieldName']." from stored ".$fieldName."</br>";
-										$insideText = $backloadRow[$fieldName];
-									}elseif($row['inside_text']!=NULL){
-										$insideText = $row['inside_text'];
-									}
+								$insideText = $backloadRow[$fieldName];
+							}elseif($row['inside_text']!=NULL){
+								$insideText = $row['inside_text'];
+							}
 
-									if($fieldName=='password' || $fieldName=='cohort_name' || $fieldName=='email'){
-										echo "<input type='hidden' name='password' value='".$passwordLogin."'>";
-										echo "<input type='hidden' name='cohort_name' value='".$cohortLogin."'>";
-										echo "<input type='hidden' name='email' value='".$emailLogin."'>";
-									}else{
+							if($fieldName=='password' || $fieldName=='cohort_name' || $fieldName=='email'){
+								echo "<input type='hidden' name='password' value='".$passwordLogin."'>";
+								echo "<input type='hidden' name='cohort_name' value='".$cohortLogin."'>";
+								echo "<input type='hidden' name='email' value='".$emailLogin."'>";
+							}else{
 
-										switch ($row['options_target']) {
-											case NULL:
-											echo "<input type='text' name='$fieldName' value='$insideText'>";
-											break;
-											case 'password':
-											echo "<input type='password' name=$fieldName' value='$insideText'>";										case 'textarea':
-											break;
-											case 'file':
-												//echo "</br><label for=".$fieldName.">".$fieldName."</label>";
-											$old = $fieldName . "_old";
-											$oldContent=$backloadRow[$fieldName];
-											echo "<input type='file' name=" . $fieldName . " id=" . $fieldName . "><br>";
-											echo "<input type='hidden' name=".$old." value='".$oldContent."'>"
-											break;
-											case 'question_options':
-												//handles multiple choice options reading from question_options table
-											$optnSql = "SELECT * FROM fields INNER JOIN question_options WHERE fields.field_name = '$fieldName' 
-											AND question_options.field_name='$fieldName'";
-											$optnArray = mysqli_query($formCon, $optnSql);
+								switch ($row['options_target']) {
+									case NULL:
+									echo "<input type='text' name='$fieldName' value='$insideText'>";
+									break;
+									case 'textarea':
+									echo "</br><textarea name='$fieldName'>" . $insideText . "</textarea>";
+									break;
+									case 'file':
+									echo "</br><label for=".$fieldName.">".$fieldName."</label>";
+									$old = $fieldName . "_old";
+									$oldContent=$backloadRow[$fieldName];
+									echo "<input type='file' name=" . $fieldName . " id=" . $fieldName . "><br>";
+									echo "<input type='hidden' name=".$old." value='".$oldContent."'>";
+									case 'question_options':
+													//handles multiple choice options reading from question_options table
+									$optnSql = "SELECT * FROM fields INNER JOIN question_options WHERE fields.field_name = '$fieldName' 
+									AND question_options.field_name='$fieldName'";
+									$optnArray = mysqli_query($formCon, $optnSql);
 
-											while($optnRow = mysqli_fetch_array($optnArray)){
-												$optnInputType = $optnRow['input_type'];
-													//$optnFieldId=$optnRow['field_id'];
-												$optnOldContent = $backloadRow[$fieldName];
-												$optnId = $optnRow['q_option_id'];
-												$optnName = $optnRow['option_name'];
-												
-												if($optnInputType!=NULL){
-													echo "<input type='$optnInputType' name='$fieldName' value='$optnId' ";
-													if($optnOldContent==$optnId){
-														echo "checked";
-													}
-													echo ">$optnName";	
-												}else{
-													echo "<input type='$optnInputType' name='$fieldName' ";
-													echo ">$optnName";
-												}
-												echo "</br>";												
-												default:
-												$optnOldContent = $backloadRow[$fieldName];
-												//echo "$optnOldContent";
-												$targetTable = $row['options_target'];
-												$dropDownSql = "SELECT * FROM $targetTable";
-												$dropDownArray = mysqli_query($formCon,$dropDownSql);
-												echo "</br>";
-												echo "<select name='$fieldName'>";
-												//echo "<option>Select a value</option>";
-												while($dropDownRow = mysqli_fetch_array($dropDownArray)){
-													$dropDownValue = $dropDownRow['name'];
-													echo "<option value='$dropDownValue' ";
-													echo ">$dropDownValue</option>";
-												}
-												echo "</select>";	
+									while($optnRow = mysqli_fetch_array($optnArray)){		
+										$optnInputType = $optnRow['input_type'];
+														//$optnFieldId=$optnRow['field_id'];
+										$optnOldContent = $backloadRow[$fieldName];
+										$optnId = $optnRow['q_option_id'];
+										$optnName = $optnRow['option_name'];
+
+										if($optnInputType!=NULL){
+											echo "<input type='$optnInputType' name='$fieldName' value='$optnId' ";
+											if($optnOldContent==$optnId){
+												echo "checked";
 											}
-											echo "</br>";
-											if($row['post_text']!=NULL)
-											{
-												if($row['is_required']==1){
-													echo $row['post_text'] . "*";
-												}else{
-													echo $row['post_text'];
-												}
-											}
+											echo ">$optnName";	
+										}else{
+											echo "<input type='$optnInputType' name='$fieldName' value='$optnOldContent' ";
+											echo ">$optnName";
 										}
+										echo "</br>";
 									}
+									break;
+									default:
+									$optnOldContent = $backloadRow[$fieldName];
+														//echo "$optnOldContent";
+									$targetTable = $row['options_target'];
+									$dropDownSql = "SELECT * FROM $targetTable";
+									$dropDownArray = mysqli_query($formCon,$dropDownSql);
+									echo "</br>";
+									echo "<select name='$fieldName'>";
+
+									while($dropDownRow = mysqli_fetch_array($dropDownArray)){
+										$dropDownValue = $dropDownRow['name'];
+										echo "<option value='$dropDownValue' ";
+										echo ">$dropDownValue</option>";
+									}
+									echo "</select>";
+									break;
 								}
 
-								?>
 
-								<div class="row form">
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 topMarginSmall bottomMargin">
-										<button class="btn btn-lg btn-primary btn-block" type="submit" name ="submit" Value ="submit">
-											Submit Completed Application</button>
-											<button class="btn btn-lg btn-primary btn-block" type="submit" name ="save" Value ="save">
-												Save Application to Complete Later</button>
-											</div>
-										</div>
+								echo "</br>";
+								if($row['post_text']!=NULL)
+								{
+									if($row['is_required']==1){
+										echo $row['post_text'] . "*";
+									}else{
+										echo $row['post_text'];
+									}
+								}
+							}
+						}
+					}
 
-									</form>
-									
+					?>
+
+					<div class="row form">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 topMarginSmall bottomMargin">
+							<button class="btn btn-lg btn-primary btn-block" type="submit" name ="submit" Value ="submit">
+								Submit Completed Application</button>
+								<button class="btn btn-lg btn-primary btn-block" type="submit" name ="save" Value ="save">
+									Save Application to Complete Later</button>
 								</div>
-
-								<div class="row form">
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 bottomMargin">
-										<h4><a href="../index.php">Return to Application Form login</a></h4>
-										<h4><a href="http://www.indie-soft.com/a100">Return to A100 Program website</a></h4>
-									</div>
-								</div>
-
 							</div>
 
-							<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-							<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-							<!-- Include all compiled plugins (below), or include individual files as needed -->
-							<script src="public_html/js/bootstrap.js"></script>
+						</form>
 
-						</body>
+					</div>
 
-						</html>
+					<div class="row form">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 bottomMargin">
+							<h4><a href="../index.php">Return to Application Form login</a></h4>
+							<h4><a href="http://www.indie-soft.com/a100">Return to A100 Program website</a></h4>
+						</div>
+					</div>
+
+				</div>
+
+				<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+				<!-- Include all compiled plugins (below), or include individual files as needed -->
+				<script src="public_html/js/bootstrap.js"></script>
+				<script>
+					function readURL(input) {
+						if (input.files && input.files[0]) {
+							var reader = new FileReader();
+
+							reader.onload = function (e) {
+								$('#blah')
+								.attr('src', e.target.result)
+							};
+
+							reader.readAsDataURL(input.files[0]);
+						}
+					}
+				</script>
+
+
+
+			</body>
+
+			</html>
